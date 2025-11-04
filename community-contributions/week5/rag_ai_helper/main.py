@@ -241,9 +241,11 @@ def main():
     retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
 
     qa_prompt = ChatPromptTemplate.from_template(
-        "You are a helpful assistant for a private document collection.\n"
-        "• If the user greets or asks general chit-chat, respond naturally (no context required).\n"
-        "• Otherwise, use ONLY the provided context to answer. If not in the context, say you don't know.\n\n"
+        "You are a professional assistant helping persons wishing to learn AI.\n"
+        "If the user greets or asks general chit-chat, respond naturally (no context required).\n"
+        "Otherwise, use the provided context to answer.\n"
+        "If not in the context, you can search the web or say you don't know.\n"
+        "But if you cannot come up with an accurate answer just say *I don't know*\n\n"
         "Context:\n{context}\n\nQuestion: {input}"
     )
 
@@ -254,7 +256,18 @@ def main():
         | StrOutputParser()
     )
 
-    gr.ChatInterface(make_chat(rag_chain), type="messages").launch(inbrowser=True)
+    WELCOME = (
+        "Hello! I'll help you learn about AI. You can ask me about:\n\n" \
+        "- using Python to create AI agents\n" \
+        "- how vector databases work\n" \
+        "- creating custom chatbots\n" \
+        "- creating voice assistants with Vapi"
+    )
+
+    # Pre-seed the Chatbot with the welcome as the first assistant message\n",
+    chatbot = gr.Chatbot(value=[{"role": "assistant", "content": WELCOME}], type="messages", height=750,);
+    gr.ChatInterface(make_chat(rag_chain), chatbot=chatbot, type="messages").launch(inbrowser=True);
+    # gr.ChatInterface(make_chat(rag_chain), type="messages").launch(inbrowser=True)
 
 if __name__ == "__main__":
     main()
